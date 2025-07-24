@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dự Đoán Tài Xỉu Sunwin</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    iframe {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 1;
+    }
+
+    #robot-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      z-index: 10;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+
+    #robot-container:active {
+      cursor: grabbing;
+      transform: scale(1.05);
+    }
+
+    #robot {
+      width: 140px;
+      display: block;
+    }
+
+    #prediction-box {
+      margin-top: 8px;
+      background: rgba(20, 20, 20, 0.9);
+      border: 1px solid #00ffc855;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      box-shadow: 0 0 5px #00ffc833;
+      width: 160px;
+      color: #fff;
+    }
+
+    #prediction-box p {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sunwin iframe full màn -->
+  <iframe src="https://web.sun.win/?affId=Sunwin" allowfullscreen></iframe>
+
+  <!-- Robot + Dự đoán -->
+  <div id="robot-container">
+    <img
+      id="robot"
+      src="https://i.pinimg.com/originals/4b/06/e3/4b06e393fd0647c265b1282b0f006486.gif"
+      alt="Robot"
+    />
+    <div id="prediction-box">
+      <p><strong>Phiên:</strong> <span id="session">--</span></p>
+      <p><strong>Tỷ lệ:</strong> <span id="rate">--</span></p>
+      <p><strong>Dự đoán:</strong> <span id="predict">--</span></p>
+    </div>
+  </div>
+
+  <script>
+    // Kéo thả robot-container
+    const robotContainer = document.getElementById("robot-container");
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+
+    robotContainer.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        robotContainer.style.left = e.pageX - offsetX + "px";
+        robotContainer.style.top = e.pageY - offsetY + "px";
+        robotContainer.style.transform = "none";
+      }
+    });
+
+    document.addEventListener("mouseup", () => isDragging = false);
+
+    robotContainer.addEventListener("touchstart", (e) => {
+      isDragging = true;
+      const t = e.touches[0];
+      const rect = robotContainer.getBoundingClientRect();
+      offsetX = t.clientX - rect.left;
+      offsetY = t.clientY - rect.top;
+    });
+
+    document.addEventListener("touchmove", (e) => {
+      if (isDragging) {
+        const t = e.touches[0];
+        robotContainer.style.left = t.clientX - offsetX + "px";
+        robotContainer.style.top = t.clientY - offsetY + "px";
+        robotContainer.style.transform = "none";
+      }
+    });
+
+    document.addEventListener("touchend", () => isDragging = false);
+
+    // Gọi API dự đoán mỗi 3 giây
+    async function fetchPrediction() {
+      try {
+        const res = await fetch("https://saolo-binhtool.onrender.com/api/taixiu/sunwin");
+        const data = await res.json();
+
+        document.getElementById("session").innerText = data.phien ? data.phien + 1 : "--";
+        document.getElementById("rate").innerText = data.ty_le_thanh_cong || "--";
+        document.getElementById("predict").innerText = data.du_doan || "--";
+      } catch (err) {
+        console.error("Lỗi API:", err);
+        document.getElementById("session").innerText = "--";
+        document.getElementById("rate").innerText = "--";
+        document.getElementById("predict").innerText = "--";
+      }
+    }
+
+    fetchPrediction();
+    setInterval(fetchPrediction, 60000); // cập nhật mỗi 3 giây
+  </script>
+</body>
+</html>
